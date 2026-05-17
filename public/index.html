@@ -417,18 +417,11 @@ function mapShopifyOrder(o) {
   };
 
   const varParts = (item.variant_title||'').split('/').map(s=>s.trim());
-
-  // Tamanho
-  const size = getAttr(['tamanho','size','Tamanho','Size']) || varParts[0] || '';
-
-  // Nome na camisa (personalização do cliente)
-  const shirtName = getAttr(['nome','Nome','name','Name','nome_camisa']) || '';
-
-  // Número na camisa
-  const number = getAttr(['numero','número','Número','number','Number','numero_camisa','Número da camisa']);
-
-  // Patch
-  const patchFromVariant = varParts.find(p => p.toLowerCase() === 'sim') ? 'Sim' : '';
+const size = getAttr(['tamanho','size','Tamanho','Size']) || varParts[0] || '';
+const shirtName = getAttr(['nome','Nome','name','Name','nome_camisa']) || '';
+const number = getAttr(['numero','número','Número','number','Number','numero_camisa','Número da camisa']);
+const patchFromVariant = varParts.find(p => p.toLowerCase() === 'sim') ? 'Sim' : '';
+const patch = getAttr(['patch','Patch','personalização patch','Patch (bordado)']) || patchFromVariant;
 
   // Tipo
   const type = getAttr(['type','tipo','Type','Tipo']) || 'Players Version';
