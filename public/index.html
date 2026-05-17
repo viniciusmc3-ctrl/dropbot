@@ -603,7 +603,7 @@ function mapShopifyOrder(o) {
     cpf,
     size,
     number,
-    shirtName: item.name || '',
+    const shirtName = props.find(p => p.name === 'Nome')?.value || props.find(p => p.name === 'Name')?.value || '';
     patch,
     quantity:  item.quantity || 1,
     type,
