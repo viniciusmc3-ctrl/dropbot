@@ -584,10 +584,10 @@ function mapShopifyOrder(o) {
 
   const varParts = (item.variant_title || '').split('/').map(s => s.trim());
   const size     = get(['tamanho','size','Tamanho','Size']) || varParts[0] || '';
-  const number   = get(['number','numero','Number','Número','numero_camisa']);
+  const number = get(['number','numero','Number','Número','numero_camisa','Número']);
   const patch    = get(['patch','Patch']);
   const type     = get(['type','tipo','Type','Tipo']) || 'Players Version';
-  const cpf      = get(['cpf','CPF','documento','Documento']);
+  const cpf    = (o.note_attributes || []).find(a => a.name === 'additional_cpf_cnpj')?.value || get(['cpf','CPF']);
   const imgUrl = (item.image?.src || '').replace(/\.avif(\?.*)?$/, '.jpg');
 
   return {
