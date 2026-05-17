@@ -75,20 +75,29 @@ app.get('/api/shopify/orders', async (req, res) => {
     const r = await axios.get(`https://${shop}/admin/api/2024-01/orders.json?${params}`, {
       headers: { 'X-Shopify-Access-Token': token }
     });
-    
-    // Para cada pedido, busca a imagem do produto
+
     const orders = r.data.orders || [];
+
+    // Busca imagem JPG para cada pedido
     const ordersWithImages = await Promise.all(orders.map(async (order) => {
       const item = order.line_items?.[0];
-      if (item?.product_id && item?.variant_id) {
-        const imageUrl = await getProductImage(shop, token, item.product_id, item.variant_id);
-        if (imageUrl) {
-          order.line_items[0].image = { src: imageUrl };
-        }
+      if (item?.product_id) {
+        try {
+          const productRes = await axios.get(
+            `https://${shop}/admin/api/2024-01/products/${item.product_id}.json`,
+            { headers: { 'X-Shopify-Access-Token': token } }
+          );
+          const images = productRes.data.product?.images || [];
+          if (images.length > 0) {
+            // Pega a primeira imagem em JPG
+            const imgSrc = images[0].src.split('?')[0];
+            order.line_items[0]._imageJpg = imgSrc;
+          }
+        } catch(e) {}
       }
       return order;
     }));
-    
+
     res.json({ orders: ordersWithImages });
   } catch (err) {
     res.status(err.response?.status || 500).json({ error: err.response?.data?.errors || err.message });
