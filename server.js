@@ -6,10 +6,35 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+const SHOPIFY_CLIENT_ID = 'd9493f349640a117d78d9b6dbd632242';
+const SHOPIFY_CLIENT_SECRET = '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';
+
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Callback OAuth - mostra o token na tela
+app.get('/auth/callback', async (req, res) => {
+  const { shop, code } = req.query;
+  if (!shop || !code) return res.status(400).send('Parâmetros inválidos');
+  try {
+    const response = await axios.post(`https://${shop}/admin/oauth/access_token`, {
+      client_id: SHOPIFY_CLIENT_ID,
+      client_secret: SHOPIFY_CLIENT_SECRET,
+      code,
+    });
+    const accessToken = response.data.access_token;
+    res.send(`<html><body style="font-family:monospace;padding:40px;background:#0d1117;color:#e6edf3">
+      <h2>✅ Token gerado com sucesso!</h2>
+      <p>Copie o token abaixo e cole no campo <strong>Access Token</strong> nas Configurações do DropBot:</p>
+      <input style="width:100%;padding:12px;font-size:14px;background:#161b22;color:#58a6ff;border:1px solid #30363d;border-radius:8px" value="${accessToken}" onclick="this.select()"/>
+      <br><br><a href="/" style="color:#00c853">← Voltar ao DropBot</a>
+    </body></html>`);
+  } catch (err) {
+    res.status(500).send('Erro: ' + err.message);
+  }
+});
 
 app.get('/api/shopify/orders', async (req, res) => {
   const { shop, token, limit = 50 } = req.query;
