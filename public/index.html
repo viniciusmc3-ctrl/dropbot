@@ -428,7 +428,7 @@ function mapShopifyOrder(o) {
   const number = getAttr(['numero','número','Número','number','Number','numero_camisa','Número da camisa']);
 
   // Patch
-  const patch = getAttr(['patch','Patch','personalização patch','Patch (bordado)']);
+  const patchFromVariant = varParts.find(p => p.toLowerCase() === 'sim') ? 'Sim' : '';
 
   // Tipo
   const type = getAttr(['type','tipo','Type','Tipo']) || 'Players Version';
