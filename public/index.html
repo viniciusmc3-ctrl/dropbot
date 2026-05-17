@@ -588,7 +588,7 @@ function mapShopifyOrder(o) {
   const patch    = get(['patch','Patch']);
   const type     = get(['type','tipo','Type','Tipo']) || 'Players Version';
   const cpf      = get(['cpf','CPF','documento','Documento']);
-  const imgUrl   = item.image?.src || '';
+  const imgUrl = (item.image?.src || '').replace(/\.avif(\?.*)?$/, '.jpg');
 
   return {
     id:        String(o.id),
