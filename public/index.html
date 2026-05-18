@@ -579,12 +579,11 @@ async function sendSelectedOrders() {
 async function doSend(order) {
   try {
     const items = order.items && order.items.length > 0 ? order.items : [order];
-    // Envia cada item com sua propria imagem e especificacoes
+    
     for (let idx = 0; idx < items.length; idx++) {
       const item = items[idx];
-      const msg = items.length > 1
-        ? `--- CAMISA ${idx+1} ---\n` + buildItemMsg(item, order)
-        : buildItemMsg(item, order);
+      const msg = buildItemMsg(item, order);
+      
       const body = {
         instanceId:    cfg.waUrl,
         instanceToken: cfg.waKey,
@@ -593,16 +592,27 @@ async function doSend(order) {
         message:       msg,
         imageUrl:      item.productImg || null,
       };
-      const r = await fetch('/api/whatsapp/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+      
+      const r = await fetch('/api/whatsapp/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
       const d = await r.json();
       if (!d.ok) throw new Error(JSON.stringify(d.error));
-      if (idx < items.length - 1) await new Promise(r=>setTimeout(r,1500));
+      
+      if (idx < items.length - 1) await new Promise(r => setTimeout(r, 1500));
     }
-    order.sent=true;
-    addLog('ok',`Pedido #${order.orderNum} enviado!`,order.name);
-    toast(`Pedido #${order.orderNum} enviado!`,'ok');
-    renderOrders(); updateStats();
-  } catch(e) { addLog('err',`Falha #${order.orderNum}`,e.message); toast(`Erro ao enviar #${order.orderNum}`,'err'); }
+    
+    order.sent = true;
+    addLog('ok', `Pedido #${order.orderNum} enviado!`, order.name);
+    toast(`Pedido #${order.orderNum} enviado!`, 'ok');
+    renderOrders();
+    updateStats();
+  } catch(e) {
+    addLog('err', `Falha #${order.orderNum}`, e.message);
+    toast(`Erro ao enviar #${order.orderNum}`, 'err');
+  }
 }
 
 const LOG_ICONS={ok:'ti-check',err:'ti-alert-circle',info:'ti-info-circle'};
