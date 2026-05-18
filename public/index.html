@@ -425,7 +425,7 @@ const patch = getAttr(['patch','Patch','personalização patch','Patch (bordado)
 
   // Tipo
   const titleLower = (item.name || '').toLowerCase();
-const type = titleLower.includes('jogador') ? 'Players Version' 
+  const type = titleLower.includes('jogador') ? 'Players Version' 
            : titleLower.includes('torcedor') ? 'Fan Version' 
            : getAttr(['type','tipo','Type','Tipo']) || 'Players Version';
 
