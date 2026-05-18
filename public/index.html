@@ -442,8 +442,7 @@ function mapShopifyOrder(o) {
   const fullName = [addr.first_name, addr.last_name].filter(Boolean).join(' ') || o.email || '';
 
   // Imagem do produto - converte avif para jpg se necessário
-  const rawImg = item.image?.src || '';
-  const imgUrl = rawImg.replace(/\.avif(\?.*)?$/, '.jpg');
+  const imgUrl = item._imageJpg || (item.image?.src || '').split('?')[0] || '';
 
   return {
     id:        String(o.id),
