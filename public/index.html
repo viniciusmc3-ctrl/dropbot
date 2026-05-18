@@ -425,8 +425,8 @@ const patch = getAttr(['patch','Patch','personalização patch','Patch (bordado)
 
   // Tipo
   const titleLower = (item.name || '').toLowerCase();
-const typeFromTitle = titleLower.indexOf('jogador') >= 0 ? 'Players Version' : titleLower.indexOf('torcedor') >= 0 ? 'Fan Version' : '';
-const type = typeFromTitle || getAttr(['type','tipo','Type','Tipo']) || 'Players Version';
+  const typeFromTitle = titleLower.indexOf('jogador') >= 0 ? 'Players Version' : titleLower.indexOf('torcedor') >= 0 ? 'Fan Version' : '';
+  const type = typeFromTitle || getAttr(['type','tipo','Type','Tipo']) || 'Players Version';
 
   // CPF - busca em note_attributes com vários nomes possíveis
   const cpf = getAttr(['cpf','CPF','additional_cpf_cnpj','cpf_cnpj','documento','Documento','CPF/CNPJ']);
