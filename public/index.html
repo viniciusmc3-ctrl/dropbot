@@ -420,7 +420,7 @@ function mapShopifyOrder(o) {
 const size = getAttr(['tamanho','size','Tamanho','Size']) || varParts[0] || '';
 const shirtName = getAttr(['nome','Nome','name','Name','nome_camisa']) || '';
 const number = getAttr(['numero','número','Número','number','Number','numero_camisa','Número da camisa']);
-const patchFromVariant = varParts.find(p => p.toLowerCase() === 'sim') ? 'Sim' : '';
+const patchFromVariant = (varParts[2] && varParts[2].toLowerCase() === 'sim') ? 'Sim' : '';
 const patch = getAttr(['patch','Patch','personalização patch','Patch (bordado)']) || patchFromVariant;
 
   // Tipo
