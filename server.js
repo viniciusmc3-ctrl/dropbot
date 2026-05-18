@@ -14,7 +14,6 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// OAuth callback
 app.get('/auth/callback', async (req, res) => {
   const { shop, code } = req.query;
   if (!shop || !code) return res.status(400).send('Parâmetros inválidos');
@@ -36,37 +35,6 @@ app.get('/auth/callback', async (req, res) => {
   }
 });
 
-// Buscar imagem do produto via variant_id
-async function getProductImage(shop, token, productId, variantId) {
-  try {
-    // Tenta pegar imagem do variant primeiro
-    const variantRes = await axios.get(
-      `https://${shop}/admin/api/2024-01/variants/${variantId}.json`,
-      { headers: { 'X-Shopify-Access-Token': token } }
-    );
-    const variant = variantRes.data.variant;
-    
-    // Se variant tem image_id, busca a imagem
-    if (variant.image_id) {
-      const imgRes = await axios.get(
-        `https://${shop}/admin/api/2024-01/products/${productId}/images/${variant.image_id}.json`,
-        { headers: { 'X-Shopify-Access-Token': token } }
-      );
-      return imgRes.data.image?.src || null;
-    }
-    
-    // Senão, pega a primeira imagem do produto
-    const productRes = await axios.get(
-      `https://${shop}/admin/api/2024-01/products/${productId}.json`,
-      { headers: { 'X-Shopify-Access-Token': token } }
-    );
-    return productRes.data.product?.images?.[0]?.src || null;
-  } catch (e) {
-    return null;
-  }
-}
-
-// Buscar pedidos pagos com imagens
 app.get('/api/shopify/orders', async (req, res) => {
   const { shop, token, limit = 50 } = req.query;
   if (!shop || !token) return res.status(400).json({ error: 'shop e token são obrigatórios' });
@@ -75,27 +43,33 @@ app.get('/api/shopify/orders', async (req, res) => {
     const r = await axios.get(`https://${shop}/admin/api/2024-01/orders.json?${params}`, {
       headers: { 'X-Shopify-Access-Token': token }
     });
-    
-    // Para cada pedido, busca a imagem do produto
+
     const orders = r.data.orders || [];
-    const ordersWithImages = await Promise.all(orders.map(async (order) => {
-      const item = order.line_items?.[0];
-      if (item?.product_id && item?.variant_id) {
-        const imageUrl = await getProductImage(shop, token, item.product_id, item.variant_id);
-        if (imageUrl) {
-          order.line_items[0].image = { src: imageUrl };
+
+    // Busca imagem JPG para todos os itens de cada pedido
+    await Promise.all(orders.map(async (order) => {
+      await Promise.all((order.line_items || []).map(async (item) => {
+        if (item.product_id) {
+          try {
+            const productRes = await axios.get(
+              `https://${shop}/admin/api/2024-01/products/${item.product_id}.json`,
+              { headers: { 'X-Shopify-Access-Token': token } }
+            );
+            const images = productRes.data.product?.images || [];
+            if (images.length > 0) {
+              item._imageJpg = images[0].src.split('?')[0];
+            }
+          } catch(e) {}
         }
-      }
-      return order;
+      }));
     }));
-    
-    res.json({ orders: ordersWithImages });
+
+    res.json({ orders });
   } catch (err) {
     res.status(err.response?.status || 500).json({ error: err.response?.data?.errors || err.message });
   }
 });
 
-// Testar conexão Shopify
 app.get('/api/shopify/test', async (req, res) => {
   const { shop, token } = req.query;
   if (!shop || !token) return res.status(400).json({ error: 'shop e token são obrigatórios' });
@@ -109,7 +83,6 @@ app.get('/api/shopify/test', async (req, res) => {
   }
 });
 
-// WhatsApp - testar
 app.get('/api/whatsapp/test', async (req, res) => {
   const { instanceId, instanceToken, clientToken } = req.query;
   try {
@@ -122,7 +95,6 @@ app.get('/api/whatsapp/test', async (req, res) => {
   }
 });
 
-// WhatsApp - enviar
 app.post('/api/whatsapp/send', async (req, res) => {
   const { instanceId, instanceToken, clientToken, number, message, imageUrl } = req.body;
   if (!instanceId || !instanceToken || !number || !message) return res.status(400).json({ error: 'Campos obrigatórios faltando' });
