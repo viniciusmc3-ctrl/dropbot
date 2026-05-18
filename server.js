@@ -46,23 +46,34 @@ app.get('/api/shopify/orders', async (req, res) => {
 
     const orders = r.data.orders || [];
 
-    // Busca imagem JPG para todos os itens de cada pedido
-    await Promise.all(orders.map(async (order) => {
-      await Promise.all((order.line_items || []).map(async (item) => {
-        if (item.product_id) {
-          try {
-            const productRes = await axios.get(
-              `https://${shop}/admin/api/2024-01/products/${item.product_id}.json`,
-              { headers: { 'X-Shopify-Access-Token': token } }
-            );
-            const images = productRes.data.product?.images || [];
-            if (images.length > 0) {
-              item._imageJpg = images[0].src.split('?')[0];
-            }
-          } catch(e) {}
+    // Coleta todos os product_ids únicos
+    const productIds = [...new Set(
+      orders.flatMap(o => (o.line_items || []).map(i => i.product_id).filter(Boolean))
+    )];
+
+    // Busca imagens de todos os produtos de uma vez
+    const imageMap = {};
+    await Promise.all(productIds.map(async (productId) => {
+      try {
+        const productRes = await axios.get(
+          `https://${shop}/admin/api/2024-01/products/${productId}.json`,
+          { headers: { 'X-Shopify-Access-Token': token } }
+        );
+        const images = productRes.data.product?.images || [];
+        if (images.length > 0) {
+          imageMap[productId] = images[0].src.split('?')[0];
         }
-      }));
+      } catch(e) {}
     }));
+
+    // Atribui imagem a cada item
+    orders.forEach(order => {
+      (order.line_items || []).forEach(item => {
+        if (item.product_id && imageMap[item.product_id]) {
+          item._imageJpg = imageMap[item.product_id];
+        }
+      });
+    });
 
     res.json({ orders });
   } catch (err) {
