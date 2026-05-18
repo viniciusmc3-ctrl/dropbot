@@ -404,7 +404,7 @@ function mapShopifyOrder(o) {
   const addr   = o.shipping_address||o.billing_address||{};
   const attrs  = o.note_attributes||[];
   const props  = item.properties||[];
-
+f
   // Busca em note_attributes e properties
   const getAttr = keys => {
     for (const k of keys) {
@@ -424,7 +424,10 @@ const patchFromVariant = (varParts[2] && varParts[2].toLowerCase() === 'sim') ? 
 const patch = getAttr(['patch','Patch','personalização patch','Patch (bordado)']) || patchFromVariant;
 
   // Tipo
-  const type = getAttr(['type','tipo','Type','Tipo']) || 'Players Version';
+  const titleLower = (item.name || '').toLowerCase();
+const type = titleLower.includes('jogador') ? 'Players Version' 
+           : titleLower.includes('torcedor') ? 'Fan Version' 
+           : getAttr(['type','tipo','Type','Tipo']) || 'Players Version';
 
   // CPF - busca em note_attributes com vários nomes possíveis
   const cpf = getAttr(['cpf','CPF','additional_cpf_cnpj','cpf_cnpj','documento','Documento','CPF/CNPJ']);
