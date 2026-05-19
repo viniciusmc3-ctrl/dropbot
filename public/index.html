@@ -591,11 +591,16 @@ async function doSend(order) {
   try {
     const items = order.items && order.items.length > 0 ? order.items : [order];
     
+    // Envia cada camisa com sua foto e especificações (SEM endereço)
     for (let idx = 0; idx < items.length; idx++) {
       const item = items[idx];
-      const isLast = idx === items.length - 1;
-      const msg = buildItemMsg(item, order, isLast);
-      
+      const msg = `SIZE: ${item.size||''}
+NAME: ${item.shirtName||''}
+NUMBER: ${item.number||''}
+PATCH: ${item.patch||''}
+QUANTITY: ${item.quantity||1}
+TYPE: ${item.type||'Players Version'}`;
+
       const body = {
         instanceId:    cfg.waUrl,
         instanceToken: cfg.waKey,
@@ -612,10 +617,38 @@ async function doSend(order) {
       });
       const d = await r.json();
       if (!d.ok) throw new Error(JSON.stringify(d.error));
-      
-      if (idx < items.length - 1) await new Promise(r => setTimeout(r, 1500));
+      await new Promise(r => setTimeout(r, 1500));
     }
+
+    // Envia dados de entrega separado (sem foto)
+    const deliveryMsg = `Order Number: #${order.orderNum||''}
+
+Recipient: ${order.name||''}
+Country/Region: ${order.country||''}
+Province/State: ${order.state||''}
+City: ${order.city||''}
+Mobile phone: ${order.phone||''}
+Address: ${order.address||''}
+postal code: ${order.zip||''}
+CPF: ${order.cpf||''}`;
+
+    const deliveryBody = {
+      instanceId:    cfg.waUrl,
+      instanceToken: cfg.waKey,
+      clientToken:   cfg.waInst,
+      number:        cfg.waNum,
+      message:       deliveryMsg,
+      imageUrl:      null,
+    };
     
+    const rd = await fetch('/api/whatsapp/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(deliveryBody)
+    });
+    const dd = await rd.json();
+    if (!dd.ok) throw new Error(JSON.stringify(dd.error));
+
     order.sent = true;
     addLog('ok', `Pedido #${order.orderNum} enviado!`, order.name);
     toast(`Pedido #${order.orderNum} enviado!`, 'ok');
