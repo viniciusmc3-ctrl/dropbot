@@ -385,7 +385,7 @@ async function syncOrders() {
   btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Sincronizando...';
   addLog('info','Sincronizando com Shopify...', cfg.shopUrl);
   try {
-    const r = await fetch(`/api/shopify/orders?shop=${encodeURIComponent(cfg.shopUrl)}&token=${encodeURIComponent(cfg.shopToken)}&limit=50`);
+    const r = await fetch(`/api/shopify/orders?shop=${encodeURIComponent(cfg.shopUrl)}&token=${encodeURIComponent(cfg.shopToken)}&limit=100`);
     if (!r.ok) throw new Error('HTTP '+r.status);
     const data = await r.json();
     if (data.error) throw new Error(data.error);
