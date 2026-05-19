@@ -417,7 +417,7 @@ function mapItem(item, attrs) {
   const patchVar  = (varParts[2]||'').toLowerCase()==='sim' ? 'Sim' : '';
   const patch     = getAttr(['patch','Patch']) || patchVar;
   const tl        = (item.name||'').toLowerCase();
-  const type      = tl.indexOf('jogador')>=0 ? 'Players Version' : tl.indexOf('torcedor')>=0 ? 'Fan Version' : 'Players Version';
+  const type = tl.indexOf('jogador') >= 0 ? 'Players Version' : tl.indexOf('torcedor') >= 0 ? 'Fan Version' : '';
   const imgUrl    = item._imageJpg || (item.image?.src||'').split('?')[0] || '';
   return { size, shirtName, number, patch, type, quantity: item.quantity||1, productImg: imgUrl, productName: item.name||'' };
 }
