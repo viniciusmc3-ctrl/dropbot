@@ -514,8 +514,19 @@ function updateActionBar() { const bar=document.getElementById('action-bar'); ba
 function filterOrders(q) { q=q.toLowerCase(); displayed=allOrders.filter(o=>o.name.toLowerCase().includes(q)||String(o.orderNum).includes(q)||o.shirtName.toLowerCase().includes(q)||o.city.toLowerCase().includes(q)); renderOrders(); }
 function filterByStatus(s) { displayed=s==='all'?[...allOrders]:s==='sent'?allOrders.filter(o=>o.sent):allOrders.filter(o=>!o.sent); renderOrders(); }
 
-function buildItemMsg(item, o) {
-  return (cfg.template||DEFAULT_TEMPLATE)
+function buildItemMsg(item, o, isLast) {
+  const template = cfg.template || DEFAULT_TEMPLATE;
+  
+  if (!isLast) {
+    return `SIZE: ${item.size||''}
+NAME: ${item.shirtName||''}
+NUMBER: ${item.number||''}
+PATCH: ${item.patch||''}
+QUANTITY: ${item.quantity||1}
+TYPE: ${item.type||'Players Version'}`;
+  }
+  
+  return template
     .replace(/{{tamanho}}/g,       item.size||'')
     .replace(/{{nome_camisa}}/g,   item.shirtName||'')
     .replace(/{{numero_camisa}}/g, item.number||'')
@@ -582,7 +593,8 @@ async function doSend(order) {
     
     for (let idx = 0; idx < items.length; idx++) {
       const item = items[idx];
-      const msg = buildItemMsg(item, order);
+      const isLast = idx === items.length - 1;
+      const msg = buildItemMsg(item, order, isLast);
       
       const body = {
         instanceId:    cfg.waUrl,
