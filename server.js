@@ -120,7 +120,69 @@ app.post('/api/whatsapp/send', async (req, res) => {
     res.status(500).json({ ok: false, error: err.response?.data || err.message });
   }
 });
+// Webhook WhatsApp - processa rastreio do fornecedor
+app.post('/webhook/whatsapp', async (req, res) => {
+  res.sendStatus(200);
+  try {
+    const body = req.body;
+    const text = body?.text?.message || body?.message?.conversation || body?.message || '';
+    if (!text) return;
 
+    // Detecta padrão: #10034 LZ416569524CN
+    const orderMatch  = text.match(/#(\d+)/);
+    const trackingMatch = text.match(/\b([A-Z]{2}\d+[A-Z]{2})\b/);
+    if (!orderMatch || !trackingMatch) return;
+
+    const orderNumber = orderMatch[1];
+    const trackingCode = trackingMatch[1];
+    console.log(`📦 Rastreio recebido: Pedido #${orderNumber} → ${trackingCode}`);
+
+    const shopUrl   = process.env.SHOP_URL;
+    const shopToken = process.env.SHOP_TOKEN;
+    if (!shopUrl || !shopToken) return;
+
+    // Busca o pedido na Shopify pelo número
+    const orderRes = await axios.get(
+      `https://${shopUrl}/admin/api/2024-01/orders.json?name=${encodeURIComponent('#'+orderNumber)}&status=any`,
+      { headers: { 'X-Shopify-Access-Token': shopToken } }
+    );
+    const order = orderRes.data.orders?.[0];
+    if (!order) { console.log(`❌ Pedido #${orderNumber} não encontrado`); return; }
+
+    // Busca os fulfillment orders do pedido
+    const foRes = await axios.get(
+      `https://${shopUrl}/admin/api/2024-01/orders/${order.id}/fulfillment_orders.json`,
+      { headers: { 'X-Shopify-Access-Token': shopToken } }
+    );
+    const fulfillmentOrders = foRes.data.fulfillment_orders || [];
+    const openFO = fulfillmentOrders.filter(fo => fo.status === 'open');
+    if (!openFO.length) { console.log(`⚠️ Pedido #${orderNumber} já processado`); return; }
+
+    // Cria fulfillment com rastreio e notifica cliente
+    await axios.post(
+      `https://${shopUrl}/admin/api/2024-01/fulfillments.json`,
+      {
+        fulfillment: {
+          message: 'Seu pedido foi enviado!',
+          notify_customer: true,
+          tracking_info: {
+            number: trackingCode,
+            company: 'Correios China',
+            url: `https://t.17track.net/en#nums=${trackingCode}`
+          },
+          line_items_by_fulfillment_order: openFO.map(fo => ({
+            fulfillment_order_id: fo.id
+          }))
+        }
+      },
+      { headers: { 'X-Shopify-Access-Token': shopToken, 'Content-Type': 'application/json' } }
+    );
+
+    console.log(`✅ Pedido #${orderNumber} processado! Rastreio: ${trackingCode}`);
+  } catch(e) {
+    console.log('❌ Erro webhook:', e.response?.data || e.message);
+  }
+});
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
