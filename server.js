@@ -202,6 +202,4 @@ app.post('/webhook/whatsapp', async (req, res) => {
 
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 app.use(express.static(path.join(__dirname, 'public')));
-app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
-
 app.listen(PORT, () => console.log(`✅ DropBot rodando na porta ${PORT}`));
