@@ -142,7 +142,7 @@ app.post('/webhook/whatsapp', async (req, res) => {
 
     // Detecta padrão: #10034 LZ416569524CN
     const orderMatch   = text.match(/#(\d+)/);
-    const trackingMatch = text.match(/\b([A-Z]{2}\d+[A-Z]{2,3})\b/);
+    const trackingMatch = text.match(/([A-Z]{2}\d{8,12}[A-Z]{2})/);
 
     if (!orderMatch || !trackingMatch) {
       console.log('Webhook: padrão não encontrado no texto:', text);
