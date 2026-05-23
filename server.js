@@ -133,10 +133,16 @@ app.post('/webhook/whatsapp', async (req, res) => {
     console.log('Webhook recebido:', JSON.stringify(body));
 
     const text = body?.text?.message
-      || body?.message?.conversation
-      || body?.message
-      || body?.body
-      || '';
+  || body?.image?.caption
+  || body?.caption
+  || body?.video?.caption
+  || body?.document?.caption
+  || body?.message?.conversation
+  || body?.message
+  || body?.body
+  || '';
+
+console.log('Texto extraído:', text);
 
     if (!text) { console.log('Webhook: sem texto'); return; }
 
