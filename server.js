@@ -41,7 +41,7 @@ app.get('/api/shopify/orders', async (req, res) => {
   if (!shop || !token) return res.status(400).json({ error: 'shop e token são obrigatórios' });
   try {
     const params = new URLSearchParams({ status: 'any', financial_status: 'paid', limit });
-    const r = await axios.get(`https://${shop}/admin/api/2024-01/orders.json?${params}`, {
+    const r = await axios.get(`https://${shop}/admin/api/2025-01/orders.json?${params}`, {
       headers: { 'X-Shopify-Access-Token': token }
     });
 
@@ -57,7 +57,7 @@ app.get('/api/shopify/orders', async (req, res) => {
     await Promise.all(productIds.map(async (productId) => {
       try {
         const productRes = await axios.get(
-          `https://${shop}/admin/api/2024-01/products/${productId}.json`,
+          `https://${shop}/admin/api/2025-01/products/${productId}.json`,
           { headers: { 'X-Shopify-Access-Token': token } }
         );
         const images = productRes.data.product?.images || [];
@@ -87,7 +87,7 @@ app.get('/api/shopify/test', async (req, res) => {
   const { shop, token } = req.query;
   if (!shop || !token) return res.status(400).json({ error: 'shop e token são obrigatórios' });
   try {
-    const r = await axios.get(`https://${shop}/admin/api/2024-01/shop.json`, {
+    const r = await axios.get(`https://${shop}/admin/api/2025-01/shop.json`, {
       headers: { 'X-Shopify-Access-Token': token }
     });
     res.json({ ok: true, shop: r.data.shop?.name });
@@ -165,7 +165,7 @@ console.log('Texto extraído:', text);
 
     // Busca o pedido na Shopify pelo número
     const orderRes = await axios.get(
-      `https://${shopUrl}/admin/api/2024-01/orders.json?name=${encodeURIComponent('#'+orderNumber)}&status=any`,
+      `https://${shopUrl}/admin/api/2025-01/orders.json?name=${encodeURIComponent('#'+orderNumber)}&status=any`,
       { headers: { 'X-Shopify-Access-Token': shopToken } }
     );
     const order = orderRes.data.orders?.[0];
@@ -173,7 +173,7 @@ console.log('Texto extraído:', text);
 
     // Busca os fulfillment orders do pedido
     const foRes = await axios.get(
-      `https://${shopUrl}/admin/api/2024-01/orders/${order.id}/fulfillment_orders.json`,
+      `https://${shopUrl}/admin/api/2025-01/orders/${order.id}/fulfillment_orders.json`,
       { headers: { 'X-Shopify-Access-Token': shopToken } }
     );
     const fulfillmentOrders = foRes.data.fulfillment_orders || [];
@@ -182,7 +182,7 @@ console.log('Texto extraído:', text);
 
     // Cria fulfillment com rastreio e notifica cliente
     await axios.post(
-      `https://${shopUrl}/admin/api/2024-01/fulfillments.json`,
+      `https://${shopUrl}/admin/api/2025-01/fulfillments.json`,
       {
         fulfillment: {
           message: 'Seu pedido foi enviado!',
