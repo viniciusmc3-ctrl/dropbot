@@ -180,25 +180,27 @@ console.log('Texto extraído:', text);
     const openFO = fulfillmentOrders.filter(fo => fo.status === 'open');
     if (!openFO.length) { console.log(`⚠️ Pedido #${orderNumber} já processado`); return; }
 
-    // Cria fulfillment com rastreio e notifica cliente
-    await axios.post(
-      `https://${shopUrl}/admin/api/2025-01/fulfillments.json`,
-      {
-        fulfillment: {
-          message: 'Seu pedido foi enviado!',
-          notify_customer: true,
-          tracking_info: {
-            number: trackingCode,
-            company: 'Correios China',
-            url: `https://t.17track.net/en#nums=${trackingCode}`
-          },
-          line_items_by_fulfillment_order: openFO.map(fo => ({
-            fulfillment_order_id: fo.id
-          }))
-        }
-      },
-      { headers: { 'X-Shopify-Access-Token': shopToken, 'Content-Type': 'application/json' } }
-    );
+    // Cria fulfillment via fulfillment order
+for (const fo of openFO) {
+  await axios.post(
+    `https://${shopUrl}/admin/api/2025-01/fulfillments.json`,
+    {
+      fulfillment: {
+        message: 'Seu pedido foi enviado!',
+        notify_customer: true,
+        tracking_info: {
+          number: trackingCode,
+          company: 'Correios China',
+          url: `https://t.17track.net/en#nums=${trackingCode}`
+        },
+        line_items_by_fulfillment_order: [{
+          fulfillment_order_id: fo.id
+        }]
+      }
+    },
+    { headers: { 'X-Shopify-Access-Token': shopToken, 'Content-Type': 'application/json' } }
+  );
+}
 
     console.log(`✅ Pedido #${orderNumber} processado! Rastreio: ${trackingCode}`);
   } catch(e) {
